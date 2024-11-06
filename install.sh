@@ -14,7 +14,7 @@ trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
 # Step 1: Clone the Github Repo
 echo "Cloning the GitHub repository..."
-if [ ! -d "creative" ]; then
+if [ ! -d "private" ]; then
     git clone https://github.com/interactjoy/private.git
 else
     echo "Repository already cloned, skipping..."
