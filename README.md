@@ -19,9 +19,15 @@ Set up conda environment with git installed:
 6. Run webui-user.bat from Windows Explorer as normal, non-administrator, user.
 
 **Automatic Installation on Linux**
+
 Install the dependencies:
+
 Paperspace start from scratch - (Debian-based):
+
 sudo apt install wget git python3 python3-venv libgl1 libglib2.0-0
+
 git clone https://github.com/interactjoy/private.git
+
 Run webui.sh.
+
 Check webui-user.sh for options.
