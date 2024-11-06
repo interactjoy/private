@@ -12,7 +12,7 @@ error_exit() {
 # Trap any command that exits with a non-zero status
 trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
-# Step 1: Clone the GitHub Repo
+# Step 1: Clone the Github Repo
 echo "Cloning the GitHub repository..."
 if [ ! -d "creative" ]; then
     git clone https://github.com/interactjoy/private.git
@@ -26,7 +26,7 @@ if [ ! -d "/notebooks/Miniconda" ]; then
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh -b -p /notebooks/Miniconda
     export PATH="/notebooks/Miniconda/bin:$PATH"
-    source ~/.bashrc
+    source ~/.bashrc  # First source to apply changes
 else
     echo "Miniconda already installed, skipping..."
 fi
@@ -41,11 +41,13 @@ fi
 
 # Step 4: Initialize and activate Conda environment
 echo "Initializing and activating Conda environment..."
-# Ensure conda is initialized for the shell
 conda init
 
-# Refresh the shell configuration and activate the environment
+# Source .bashrc again after conda init to ensure all settings take effect
 source ~/.bashrc
+sleep 5  # Delay for 5 seconds to ensure all changes are loaded
+
+# Activate the environment
 conda activate creativeenv
 
 # Step 5: Navigate to the project folder
@@ -54,7 +56,7 @@ cd /notebooks/creative
 
 # Step 6: Install Dependencies
 echo "Installing dependencies..."
-sudo apt update && sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
+sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
 
 # Step 7: Run Program
 echo "Launching the program..."
