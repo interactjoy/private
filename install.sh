@@ -52,7 +52,7 @@ conda activate creativeenv
 
 # Step 5: Navigate to the project folder
 echo "Navigating to the project folder..."
-cd /notebooks/creative
+cd /notebooks/private
 
 # Step 6: Install Dependencies
 echo "Installing dependencies..."
