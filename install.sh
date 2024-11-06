@@ -12,7 +12,7 @@ error_exit() {
 # Trap any command that exits with a non-zero status
 trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
-# Step 1: Clone the Github Repo
+# Step 1: Clone the GitHub Repo
 echo "Cloning the GitHub repository..."
 if [ ! -d "creative" ]; then
     git clone https://github.com/interactjoy/private.git
@@ -30,17 +30,21 @@ if [ ! -d "/notebooks/Miniconda" ]; then
 else
     echo "Miniconda already installed, skipping..."
 fi
+
 # Step 3: Create Conda environment
 echo "Creating Conda environment..."
-if conda info --envs | grep -q "creative"; then
-    echo "Conda environment 'creative' already exists, skipping..."
+if conda info --envs | grep -q "creativeenv"; then
+    echo "Conda environment 'creativeenv' already exists, skipping..."
 else
-    conda create --name creativeenv python=3.10.6
+    conda create --name creativeenv python=3.10.6 -y
 fi
 
 # Step 4: Initialize and activate Conda environment
 echo "Initializing and activating Conda environment..."
+# Ensure conda is initialized for the shell
 conda init
+
+# Refresh the shell configuration and activate the environment
 source ~/.bashrc
 conda activate creativeenv
 
@@ -49,7 +53,15 @@ echo "Navigating to the project folder..."
 cd /notebooks/creative
 
 # Step 6: Install Dependencies
-sudo apt install wget git python3 python3-venv libgl1 libglib2.0-0
+echo "Installing dependencies..."
+sudo apt update && sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
 
-# Step 7. Run Program
-echo bash webui.sh
+# Step 7: Run Program
+echo "Launching the program..."
+if [ -f "webui.sh" ]; then
+    bash webui.sh
+else
+    echo "Program script webui.sh not found. Please check the installation."
+fi
+
+echo "Installation and setup complete!"
