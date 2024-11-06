@@ -44,8 +44,10 @@ echo "Initializing and activating Conda environment..."
 conda init
 echo "Refreshing..."
 source ~/.bashrc
+conda activate creativeenv
 sleep 2  # Delay for 2 seconds to ensure all changes are loaded
 # Source .bashrc again after conda init to ensure all settings take effect
+conda init
 echo "Refreshing..."
 source ~/.bashrc
 sleep 2  # Delay for 2 seconds to ensure all changes are loaded
