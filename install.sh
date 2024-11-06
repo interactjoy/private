@@ -14,7 +14,7 @@ trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
 # Step 1: Clone the Github Repo
 echo "Cloning the GitHub repository..."
-if [ ! -d "private" ]; then
+if [ ! -d "creative" ]; then
     git clone https://github.com/interactjoy/private.git
 else
     echo "Repository already cloned, skipping..."
@@ -39,30 +39,30 @@ else
     conda create --name creativeenv python=3.10.6 -y
 fi
 
-# Step 4: Initialize and activate Conda environment
-echo "Initializing and activating Conda environment..."
+# Step 4: Initialize Conda and restart shell to apply changes
+echo "Initializing Conda environment..."
 conda init
-echo "Refreshing..."
-source ~/.bashrc
-conda activate creativeenv
-sleep 2  # Delay for 2 seconds to ensure all changes are loaded
+
 # Source .bashrc again after conda init to ensure all settings take effect
-conda init
-echo "Refreshing..."
 source ~/.bashrc
-sleep 2  # Delay for 2 seconds to ensure all changes are loaded
-# Activate the environment
+sleep 3  # Delay for 3 seconds to ensure all changes are loaded
+
+# Restart the shell to fully apply conda init
+exec $SHELL
+
+# Step 5: Activate the environment
+echo "Activating Conda environment..."
 conda activate creativeenv
 
-# Step 5: Navigate to the project folder
+# Step 6: Navigate to the project folder
 echo "Navigating to the project folder..."
-cd /notebooks/private
+cd /notebooks/creative
 
-# Step 6: Install Dependencies
+# Step 7: Install Dependencies
 echo "Installing dependencies..."
 sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
 
-# Step 7: Run Program
+# Step 8: Run Program
 echo "Launching the program..."
 if [ -f "webui.sh" ]; then
     bash webui.sh
