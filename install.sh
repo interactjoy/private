@@ -22,20 +22,18 @@ if [ ! -d "/notebooks/Miniconda" ]; then
 else
     echo "Miniconda already installed, skipping..."
 fi
-# Step 3: Create Conda environment
-echo "Creating Conda environment..."
-if conda info --envs | grep -q "creative"; then
-    echo "Conda environment 'creative' already exists, skipping..."
-else
-    conda create --name creativeenv python=3.10.6 -y
-fi
-sleep 3
-# Step 4: Initialize and activate Conda environment
+
 echo "Initializing and activating Conda environment..."
 conda init
-sleep 3
+# Step 3: Create Conda environment
+echo "Creating Conda environment..."
+if conda info --envs | grep -q "creativeenv"; then
+    echo "Conda environment 'creativeenv' already exists, skipping..."
+else
+    conda create --name creativeenv python=3.10.6
+fi
+# Step 4: Activate Conda environment
 source ~/.bashrc
-sleep 3
 conda activate creativeenv
 
 # Step 5: Navigate to the project folder
