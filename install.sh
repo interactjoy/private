@@ -27,6 +27,11 @@ fi
 echo "Initializing Conda environment..."
 conda init
 
+echo "Refreshing... 15 seconds"
+sleep 15
+echo "Applying Conda initialization..."
+source ~/.bashrc
+
 # Step 2: Source .bashrc to apply changes (important for conda init to take effect)
 echo "Applying Conda initialization..."
 source ~/.bashrc
@@ -39,7 +44,13 @@ else
     conda create --name creativeenv python=3.10.6 -y
 fi
 
-# Step 4: Activate Conda environment
+# Step 4: Restart the shell session to ensure conda activate works
+echo "Restarting shell session to finalize Conda setup..."
+exec "$SHELL" -l  # Restart the shell
+
+sleep 5
+
+# Step 5: Activate Conda environment (this will now work after shell restart)
 echo "Activating Conda environment 'creativeenv'..."
 conda activate creativeenv
 
