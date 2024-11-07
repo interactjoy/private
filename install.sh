@@ -59,7 +59,16 @@ echo "Navigating to the project folder..."
 cd /notebooks/private
 
 # Step 6: Install Dependencies
+sudo apt update
 sudo apt install wget git python3 python3-venv libgl1 libglib2.0-0
+sudo adduser creativeteam
+sudo usermod -aG sudo creativeteam
+su - creativeteam
+
+
+
+
 
 # Step 7. Run Program
-echo bash webui.sh
+echo "Run Program" 
+bash webui.sh
