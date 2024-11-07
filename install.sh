@@ -30,7 +30,7 @@ echo "Creating Conda environment..."
 if conda info --envs | grep -q "creativeenv"; then
     echo "Conda environment 'creativeenv' already exists, skipping..."
 else
-    conda create --name creativeenv python=3.10.6
+    conda create --name creativeenv python=3.10.6 -y
 fi
 # Step 4: Activate Conda environment
 source ~/.bashrc
