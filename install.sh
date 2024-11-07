@@ -13,6 +13,8 @@ error_exit() {
 trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
 # Update system and install dependencies
+echo "Welcome to your Interact Joy Stable Diffusion Workplace."
+echo "The installation process will take about 5 minutes."
 echo "Installing system dependencies..."
 sudo apt update
 sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
@@ -35,8 +37,8 @@ sudo adduser --disabled-password --gecos "" creativeteam || echo "User 'creative
 sudo usermod -aG sudo creativeteam
 
 # Clone the 'interactjoy/private' repository
-echo "Cloning the 'private' repository from GitHub..."
-git clone https://github.com/interactjoy/private.git /notebooks/private || echo "Repository already cloned."
+echo "Checking all files, ignore fatal error..."
+git clone https://github.com/interactjoy/private.git /notebooks/private || echo "Ignoring Error, proceeding to install requirements."
 
 # Switch to the cloned directory
 cd /notebooks/private
@@ -50,6 +52,6 @@ source venv/bin/activate
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-# Run the webui.sh script
-echo "Running the program (webui.sh)..."
-bash webui.sh
+# Switch to 'creativeteam' user and run the webui.sh script
+echo "Running the program (webui.sh) as 'creativeteam' user..."
+su - creativeteam -c "cd /notebooks/private && bash webui.sh"
