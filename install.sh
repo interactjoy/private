@@ -36,25 +36,27 @@ echo "Setting up 'creativeteam' user..."
 sudo adduser --disabled-password --gecos "" creativeteam || echo "User 'creativeteam' already exists."
 sudo usermod -aG sudo creativeteam
 
-# Clone the 'interactjoy/private' repository
-echo "Checking all files, ignore fatal error..."
-git clone https://github.com/interactjoy/private.git /notebooks/private || echo "Ignoring Error, proceeding to install requirements."
+# Clone the 'interactjoy/private' repository (if not already cloned)
+echo "Cloning the repository..."
+git clone https://github.com/interactjoy/private.git /notebooks/private || echo "Repository already cloned."
+
+# Ensure proper ownership of the repository and all files
+sudo chown -R creativeteam:creativeteam /notebooks/private
 
 # Switch to the cloned directory
 cd /notebooks/private
 
 # Mark the repository as a safe directory for Git to avoid dubious ownership error
-git config --global --add safe.directory /notebooks/private
+su - creativeteam -c "git config --global --add safe.directory /notebooks/private"
 
-# Set up a Python virtual environment
-echo "Setting up Python virtual environment..."
-sudo chown -R creativeteam:creativeteam /notebooks/private/venv  # Ensure correct permissions on the virtual environment folder
-su - creativeteam -c "python3 -m venv /notebooks/private/venv"  # Recreate venv as 'creativeteam'
+# Ensure the venv directory doesn't exist and recreate it
+rm -rf /notebooks/private/venv
+su - creativeteam -c "python3 -m venv /notebooks/private/venv"
 
 # Install required Python dependencies
 echo "Installing Python dependencies..."
-su - creativeteam -c "source /notebooks/private/venv/bin/activate && pip install -r /notebooks/private/requirements.txt"
+su - creativeteam -c "/notebooks/private/venv/bin/python -m pip install -r /notebooks/private/requirements.txt"
 
-# Switch to 'creativeteam' user and run the webui.sh script
+# Run the program (webui.sh) as 'creativeteam' user
 echo "Running the program (webui.sh) as 'creativeteam' user..."
 su - creativeteam -c "cd /notebooks/private && bash webui.sh"
