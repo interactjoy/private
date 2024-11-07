@@ -12,51 +12,38 @@ error_exit() {
 # Trap any command that exits with a non-zero status
 trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
-# Step 1: Clone the Github Repo
-echo "Cloning the GitHub repository..."
-if [ ! -d "creative" ]; then
-    git clone https://github.com/interactjoy/private.git
-else
-    echo "Repository already cloned, skipping..."
-fi
-
 # Step 2: Install MiniConda
 echo "Downloading and installing Miniconda..."
 if [ ! -d "/notebooks/Miniconda" ]; then
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh -b -p /notebooks/Miniconda
     export PATH="/notebooks/Miniconda/bin:$PATH"
-    source ~/.bashrc  # First source to apply changes
+    source ~/.bashrc
 else
     echo "Miniconda already installed, skipping..."
 fi
-
 # Step 3: Create Conda environment
 echo "Creating Conda environment..."
-if conda info --envs | grep -q "creativeenv"; then
-    echo "Conda environment 'creativeenv' already exists, skipping..."
+if conda info --envs | grep -q "creative"; then
+    echo "Conda environment 'creative' already exists, skipping..."
 else
-    conda create --name creativeenv python=3.10.6 -y
+    conda create --name creativeenv python=3.10.6
 fi
-
-# Step 5: Activate the environment
-echo "Activating Conda environment..."
+sleep 3
+# Step 4: Initialize and activate Conda environment
+echo "Initializing and activating Conda environment..."
+conda init
+sleep 3
+source ~/.bashrc
+sleep 3
 conda activate creativeenv
 
-# Step 6: Navigate to the project folder
+# Step 5: Navigate to the project folder
 echo "Navigating to the project folder..."
-cd /notebooks/creative
+cd /notebooks/private
 
-# Step 7: Install Dependencies
-echo "Installing dependencies..."
-sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
+# Step 6: Install Dependencies
+sudo apt install wget git python3 python3-venv libgl1 libglib2.0-0
 
-# Step 8: Run Program
-echo "Launching the program..."
-if [ -f "webui.sh" ]; then
-    bash webui.sh
-else
-    echo "Program script webui.sh not found. Please check the installation."
-fi
-
-echo "Installation and setup complete!"
+# Step 7. Run Program
+echo bash webui.sh
