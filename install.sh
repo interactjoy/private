@@ -12,63 +12,44 @@ error_exit() {
 # Trap any command that exits with a non-zero status
 trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
-# Step 0: Install MiniConda
-echo "Downloading and installing Miniconda..."
-if [ ! -d "/notebooks/Miniconda" ]; then
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p /notebooks/Miniconda
-    export PATH="/notebooks/Miniconda/bin:$PATH"
-    source ~/.bashrc
+# Update system and install dependencies
+echo "Installing system dependencies..."
+sudo apt update
+sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
+
+# Check if Python 3.11 is required (only if system doesn't have it)
+if ! command -v python3.11 &> /dev/null; then
+    echo "Installing Python 3.11 from deadsnakes PPA..."
+    sudo add-apt-repository -y ppa:deadsnakes/ppa
+    sudo apt update
+    sudo apt install -y python3.11
+    python_cmd="python3.11"
 else
-    echo "Miniconda already installed, skipping..."
+    echo "Python 3.11 is already installed. Using system default."
+    python_cmd="python3"
 fi
 
-# Step 1: Initialize Conda
-echo "Initializing Conda environment..."
-conda init
+# Create 'creativeteam' user and add to sudo group
+echo "Setting up 'creativeteam' user..."
+sudo adduser --disabled-password --gecos "" creativeteam || echo "User 'creativeteam' already exists."
+sudo usermod -aG sudo creativeteam
 
-echo "Refreshing... 15 seconds"
-sleep 15
-echo "Applying Conda initialization..."
-source ~/.bashrc
+# Clone the 'interactjoy/private' repository
+echo "Cloning the 'private' repository from GitHub..."
+git clone https://github.com/interactjoy/private.git /notebooks/private || echo "Repository already cloned."
 
-# Step 2: Source .bashrc to apply changes (important for conda init to take effect)
-echo "Applying Conda initialization..."
-source ~/.bashrc
-
-# Step 3: Check if the environment exists and create it if necessary
-echo "Creating Conda environment..."
-if conda info --envs | grep -q "creativeenv"; then
-    echo "Conda environment 'creativeenv' already exists, skipping..."
-else
-    conda create --name creativeenv python=3.10.6 -y
-fi
-
-# Step 4: Restart the shell session to ensure conda activate works
-echo "Restarting shell session to finalize Conda setup..."
-exec "$SHELL" -l  # Restart the shell
-
-sleep 5
-
-# Step 5: Activate Conda environment (this will now work after shell restart)
-echo "Activating Conda environment 'creativeenv'..."
-conda activate creativeenv
-
-# Step 5: Navigate to the project folder
-echo "Navigating to the project folder..."
+# Switch to the cloned directory
 cd /notebooks/private
 
-# Step 6: Install Dependencies
-sudo apt update
-sudo apt install wget git python3 python3-venv libgl1 libglib2.0-0
-sudo adduser creativeteam
-sudo usermod -aG sudo creativeteam
-su - creativeteam
+# Set up a Python virtual environment
+echo "Setting up Python virtual environment..."
+python3 -m venv venv
+source venv/bin/activate
 
+# Install required Python dependencies
+echo "Installing Python dependencies..."
+pip install -r requirements.txt
 
-
-
-
-# Step 7. Run Program
-echo "Run Program" 
+# Run the webui.sh script
+echo "Running the program (webui.sh)..."
 bash webui.sh
