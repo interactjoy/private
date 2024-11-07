@@ -43,14 +43,17 @@ git clone https://github.com/interactjoy/private.git /notebooks/private || echo 
 # Switch to the cloned directory
 cd /notebooks/private
 
+# Mark the repository as a safe directory for Git to avoid dubious ownership error
+git config --global --add safe.directory /notebooks/private
+
 # Set up a Python virtual environment
 echo "Setting up Python virtual environment..."
-python3 -m venv venv
-source venv/bin/activate
+sudo chown -R creativeteam:creativeteam /notebooks/private/venv  # Ensure correct permissions on the virtual environment folder
+su - creativeteam -c "python3 -m venv /notebooks/private/venv"  # Recreate venv as 'creativeteam'
 
 # Install required Python dependencies
 echo "Installing Python dependencies..."
-pip install -r requirements.txt
+su - creativeteam -c "source /notebooks/private/venv/bin/activate && pip install -r /notebooks/private/requirements.txt"
 
 # Switch to 'creativeteam' user and run the webui.sh script
 echo "Running the program (webui.sh) as 'creativeteam' user..."
