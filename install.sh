@@ -27,7 +27,7 @@ echo "Creating Conda environment..."
 if conda info --envs | grep -q "creative"; then
     echo "Conda environment 'creative' already exists, skipping..."
 else
-    conda create --name creativeenv python=3.10.6
+    conda create --name creativeenv python=3.10.6 -y
 fi
 sleep 3
 # Step 4: Initialize and activate Conda environment
