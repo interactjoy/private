@@ -39,17 +39,6 @@ else
     conda create --name creativeenv python=3.10.6 -y
 fi
 
-# Step 4: Initialize Conda and restart shell to apply changes
-echo "Initializing Conda environment..."
-conda init
-
-# Source .bashrc again after conda init to ensure all settings take effect
-source ~/.bashrc
-sleep 3  # Delay for 3 seconds to ensure all changes are loaded
-
-# Restart the shell to fully apply conda init
-exec $SHELL
-
 # Step 5: Activate the environment
 echo "Activating Conda environment..."
 conda activate creativeenv
