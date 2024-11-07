@@ -12,7 +12,7 @@ error_exit() {
 # Trap any command that exits with a non-zero status
 trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
-# Step 2: Install MiniConda
+# Step 0: Install MiniConda
 echo "Downloading and installing Miniconda..."
 if [ ! -d "/notebooks/Miniconda" ]; then
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
@@ -23,17 +23,24 @@ else
     echo "Miniconda already installed, skipping..."
 fi
 
-echo "Initializing and activating Conda environment..."
+# Step 1: Initialize Conda
+echo "Initializing Conda environment..."
 conda init
-# Step 3: Create Conda environment
+
+# Step 2: Source .bashrc to apply changes (important for conda init to take effect)
+echo "Applying Conda initialization..."
+source ~/.bashrc
+
+# Step 3: Check if the environment exists and create it if necessary
 echo "Creating Conda environment..."
 if conda info --envs | grep -q "creativeenv"; then
     echo "Conda environment 'creativeenv' already exists, skipping..."
 else
     conda create --name creativeenv python=3.10.6 -y
 fi
+
 # Step 4: Activate Conda environment
-source ~/.bashrc
+echo "Activating Conda environment 'creativeenv'..."
 conda activate creativeenv
 
 # Step 5: Navigate to the project folder
