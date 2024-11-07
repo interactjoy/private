@@ -13,7 +13,7 @@ error_exit() {
 trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
 # Update system and install dependencies
-echo "Welcome to your Interact Joy Stable Diffusion Workplace."
+echo "Welcome to your Interact Joy Stable Diffusion Workplace. Use the Public Gradio Link at the end of the process to access your Stable Diffusion Workplace in your browser."
 echo "The installation process will take about 5 minutes."
 echo "Installing system dependencies..."
 sudo apt update
