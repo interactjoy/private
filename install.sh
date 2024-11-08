@@ -13,8 +13,8 @@ error_exit() {
 trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 
 # Update system and install dependencies
-echo "Welcome to your Interact Joy Stable Diffusion Workplace. Use the Public Gradio Link at the end of the process to access your Stable Diffusion Workplace in your browser."
-echo "The installation process will take about 5 minutes."
+echo -e "\033[34mWelcome to your Interact Joy Stable Diffusion Workplace. Use the Public Gradio Link at the end of the process to access your Stable Diffusion Workplace in your browser.\033[0m"
+echo -e "\033[34mThe installation process will take about 5 minutes.\033[0m"
 echo "Installing system dependencies..."
 sudo apt update
 sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
