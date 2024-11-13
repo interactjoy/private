@@ -42,9 +42,13 @@ else
 fi
 
 # Create 'creativeteam' user and add to sudo group
-echo -e "\033[34mSetting up 'creativeteam' user...\033[0m"
-sudo adduser --disabled-password --gecos "" creativeteam >/dev/null || echo "User 'creativeteam' already exists."
-sudo usermod -aG sudo creativeteam
+if ! id -u creativeteam &>/dev/null; then
+    echo -e "\033[34mSetting up 'creativeteam' user...\033[0m"
+    sudo adduser --disabled-password --gecos "" creativeteam >/dev/null
+    sudo usermod -aG sudo creativeteam
+else
+    echo "User 'creativeteam' already exists."
+fi
 
 # Grant 'creativeteam' user permissions to necessary directories
 echo -e "\033[34mGranting 'creativeteam' user permissions...\033[0m"
@@ -91,12 +95,12 @@ rm -rf /notebooks/private/venv
 sudo -u creativeteam "$python_cmd" -m venv /notebooks/private/venv
 echo -e "\033[32mPython virtual environment setup complete.\033[0m"
 
-# Install required Python dependencies with progress bar (without suppressing output)
+# Install required Python dependencies with progress bar (ignoring empty lines)
 echo -e "\033[34mInstalling Python dependencies...\033[0m"
-DEPENDENCY_COUNT=$(wc -l < /notebooks/private/requirements.txt)
+DEPENDENCY_COUNT=$(grep -cve '^\s*$' /notebooks/private/requirements.txt)
 CURRENT_COUNT=0
 while read -r dependency; do
-    if [[ -n "$dependency" ]]; then
+    if [[ -n "$dependency" && ! "$dependency" =~ ^\s*$ ]]; then
         CURRENT_COUNT=$((CURRENT_COUNT + 1))
         PERCENT=$((CURRENT_COUNT * 100 / DEPENDENCY_COUNT))
         echo -ne "\rInstalling $dependency ($CURRENT_COUNT/$DEPENDENCY_COUNT) [$PERCENT%]..."
