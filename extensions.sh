@@ -11,6 +11,9 @@ if ! id "creativeteam" &>/dev/null; then
     sudo useradd -m creativeteam
 fi
 
+# Install Insightface
+pip install insightface
+
 # Prompt user for GitHub token
 prompt_for_token() {
     while true; do
