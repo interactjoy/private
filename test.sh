@@ -61,8 +61,8 @@ echo -e "\033[34mCloning or updating the repository...\033[0m"
 if [ -d "/notebooks/private/.git" ]; then
     echo -e "\033[34mRepository already exists. Updating...\033[0m"
     cd /notebooks/private
-    sudo -u creativeteam git fetch --all >/dev/null 2>&1
-    sudo -u creativeteam git reset --hard origin/main || { echo -e "\033[31mFailed to reset repository. Retrying with safe permissions...\033[0m"; sudo git reset --hard origin/main; }
+    sudo -u creativeteam git fetch --all >/dev/null 2>&1 || { echo -e "\033[31mFailed to fetch updates. Please check your network connection.\033[0m"; exit 1; }
+    sudo -u creativeteam git reset --hard origin/main -- >/dev/null 2>&1 || { echo -e "\033[31mFailed to reset repository. Retrying with safe permissions...\033[0m"; sudo git config --global --add safe.directory /notebooks/private && sudo git reset --hard origin/main --; }
     echo -e "\033[32mRepository update complete.\033[0m"
 else
     echo -e "\033[34mCloning the repository...\033[0m"
