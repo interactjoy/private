@@ -1,0 +1,15 @@
+velvet
+red
+blue
+white
+silver
+grey
+beige
+checkered
+dogtooth
+designer
+yellow
+pink
+lilac
+silk
+ruffled

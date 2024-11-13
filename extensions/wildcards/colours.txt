@@ -1,0 +1,30 @@
+Red
+Blue
+Green
+Yellow
+Purple
+Orange
+Pink
+Turquoise
+Brown
+Gray
+Magenta
+Teal
+Lavender
+Cyan
+Olive
+Aqua Marine
+Coral Pink
+Sapphire Blue
+Goldenrod Yellow
+Amethyst Purple
+Tangerine Orange
+Mint Green
+Cherry Blossom Pink
+Azure Blue
+Sunset Orange
+Lilac Purple
+Turquoise Teal
+Rose Gold
+Emerald Green
+Sunflower Yellow
