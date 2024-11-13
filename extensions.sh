@@ -1,75 +1,82 @@
 #!/bin/bash
 
-# Function to prompt the user to enter the GitHub token until valid or quit
+# Ensure the 'creativeteam' user exists, create if missing
+if ! id "creativeteam" &>/dev/null; then
+    echo "Setting up environment..."
+    sudo useradd -m creativeteam
+fi
+
+# Prompt user for GitHub token
 prompt_for_token() {
     while true; do
-        read -p "Please enter your GITHUB_TOKEN (or type 'q' to quit): " GITHUB_TOKEN
+        read -p "Enter your GitHub token (or type 'q' to quit): " GITHUB_TOKEN
         if [ "$GITHUB_TOKEN" == "q" ]; then
-            echo "Quitting..."
+            echo "Exiting..."
             exit 0
         fi
 
-        # Test the token by attempting to access the GitHub API
-        echo "Testing GITHUB_TOKEN..."
+        # Validate the GitHub token
         response=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user)
-        
         if [ "$response" -eq 200 ]; then
-            echo "Token is valid."
+            echo -e "\e[32mGitHub token validated.\e[0m"
             break
         else
-            echo "Error: Invalid token. Please try again."
+            echo -e "\e[31mInvalid token, please try again.\e[0m"
         fi
     done
 }
 
-# Prompt the user for the GitHub token
 prompt_for_token
 
-# Clone the repository using the token
+# Clone the repository
 REPO_URL="https://$GITHUB_TOKEN@github.com/interactjoy/Scripts"
 INSTALL_DIR="/notebooks/private/Install"
 
 mkdir -p "$INSTALL_DIR"
 
 if [ -d "$INSTALL_DIR/.git" ]; then
-    echo "Repository already exists. Skipping clone."
+    echo -e "\e[33mRepository already exists. Skipping clone.\e[0m"
 else
     echo "Cloning repository..."
     GIT_ASKPASS_SCRIPT=$(mktemp)
-    echo "#!/bin/bash" > "$GIT_ASKPASS_SCRIPT"
-    echo "echo \"$GITHUB_TOKEN\"" >> "$GIT_ASKPASS_SCRIPT"
+    echo -e "#!/bin/bash\necho \"$GITHUB_TOKEN\"" > "$GIT_ASKPASS_SCRIPT"
     chmod +x "$GIT_ASKPASS_SCRIPT"
 
-    GIT_ASKPASS="$GIT_ASKPASS_SCRIPT" git clone "$REPO_URL" "$INSTALL_DIR" || {
-        echo "Error: Failed to clone the repository. Please check your token and internet connection."
+    GIT_ASKPASS="$GIT_ASKPASS_SCRIPT" git clone -q "$REPO_URL" "$INSTALL_DIR" || {
+        echo -e "\e[31mError: Could not clone repository. Check your token or internet connection.\e[0m"
         exit 1
     }
-
-    # Clean up the temporary script
     rm -f "$GIT_ASKPASS_SCRIPT"
-    
-    echo "Repository cloned successfully."
+    echo -e "\e[32mRepository cloned successfully.\e[0m"
 fi
 
-# Ensure we're working with creativeteam permissions
-sudo -u creativeteam bash << EOF
+# Initialize error log
+ERROR_LOG="/notebooks/private/error_log.txt"
+> "$ERROR_LOG"
 
-# Function to run a script and handle errors
-run_script() {
-    if [ -f "\$1" ]; then
-        echo "Running \$(basename \"\$1\")..."
-        chmod +x "\$1"
-        "\$1" || {
-            echo "Error: Failed to run \$(basename \"\$1\"). Please check the script for issues."
-            return 1
-        }
-        echo "Successfully ran \$(basename \"\$1\")."
+# Function to run scripts as 'creativeteam' user
+run_script_as_creativeteam() {
+    script_path="$1"
+
+    if [ -f "$script_path" ]; then
+        sudo chown creativeteam:creativeteam "$script_path"
+        sudo chmod u+x "$script_path"
     else
-        echo "Error: Script \$1 not found."
+        echo -e "\e[33mWarning: $script_path not found. Skipping...\e[0m"
+        echo "Error: $script_path not found" >> "$ERROR_LOG"
+        return 1
+    fi
+
+    echo -e "\e[34mRunning $(basename "$script_path")...\e[0m"
+    if ! sudo -u creativeteam bash -c "cd $(dirname "$script_path") && ./$(basename "$script_path")" >> /notebooks/private/install_log.txt 2>&1; then
+        echo -e "\e[31mError: $(basename "$script_path") failed. Please check for issues.\e[0m"
+        echo "Error in $(basename "$script_path"): $(tail -n 5 /notebooks/private/install_log.txt)" >> "$ERROR_LOG"
+    else
+        echo -e "\e[32mCompleted $(basename "$script_path").\e[0m"
     fi
 }
 
-# Run the downloaded scripts
+# Run installation scripts with progress bars
 SCRIPTS=(
     "install_controlnet.sh"
     "install_adetailer.sh"
@@ -80,42 +87,66 @@ SCRIPTS=(
     "install_lora_models.sh"
 )
 
-for script_name in "\${SCRIPTS[@]}"; do
-    script_path="${INSTALL_DIR}/\${script_name}"
-    if [ -f "\$script_path" ]; then
-        run_script "\$script_path"
-        echo "\$(basename \"\$script_path\") is available."
-    else
-        echo "Error: \$script_path was not found or downloaded correctly."
-        exit 1
-    fi
+for script_name in "${SCRIPTS[@]}"; do
+    script_path="${INSTALL_DIR}/${script_name}"
+    echo -e "\e[34m[===== Running: $(basename "$script_path") =====]\e[0m"
+    run_script_as_creativeteam "$script_path"
+    echo -e "\e[34m[===== Completed: $(basename "$script_path") =====]\e[0m"
+    sleep 1
+
+    # Check if the specific directory contains the expected files after running the script
+    case "$script_name" in
+        "download_specific_models.sh")
+            MODELS_DIR="/notebooks/private/models/Stable-diffusion"
+            if [ -d "$MODELS_DIR" ] && [ "$(ls -A "$MODELS_DIR")" ]; then
+                echo -e "\e[32mModels directory is populated as expected.\e[0m"
+            else
+                echo -e "\e[31mError: Models directory is empty after running $script_name. Please check the script or download process.\e[0m"
+                echo "Error: Models directory is empty after running $script_name" >> "$ERROR_LOG"
+            fi
+            ;;
+    esac
+
 done
 
-# Upgrade gdown using virtual environment and handle errors
-echo "Upgrading gdown..."
-if /notebooks/private/venv/bin/pip install --upgrade gdown; then
-    echo "Successfully upgraded gdown."
+# Upgrade gdown
+echo -e "\e[34mUpgrading gdown...\e[0m"
+if /notebooks/private/venv/bin/pip install --upgrade gdown >> /notebooks/private/install_log.txt 2>&1; then
+    echo -e "\e[32mgdown upgraded successfully.\e[0m"
 else
-    echo "Error: Failed to upgrade gdown. Please ensure pip is installed and try again."
+    echo -e "\e[31mError: Failed to upgrade gdown. Please check your setup.\e[0m"
+    echo "Error in upgrading gdown" >> "$ERROR_LOG"
 fi
 
-# Add permission for start.sh script
-chmod +x /notebooks/private/start.sh
+# Set permissions for start.sh
+if [ -f "/notebooks/private/start.sh" ]; then
+    chmod +x /notebooks/private/start.sh
+else
+    echo -e "\e[31mError: start.sh not found.\e[0m"
+    echo "Error: start.sh not found" >> "$ERROR_LOG"
+fi
 
-# Prompt the user if they want to run start.sh
+# Prompt user to run start.sh
 read -p "Do you want to run start.sh now? (Y/N): " run_start
-if [[ "\$run_start" =~ ^[Yy]$ ]]; then
-    echo "Running start.sh..."
-    /notebooks/private/start.sh || {
-        echo "Error: Failed to run start.sh. Please check the script for issues."
+if [[ "$run_start" =~ ^[Yy]$ ]]; then
+    echo -e "\e[34mRunning start.sh...\e[0m"
+    if ! sudo -u creativeteam bash -c "cd /notebooks/private && ./start.sh" >> /notebooks/private/install_log.txt 2>&1; then
+        echo -e "\e[31mError: start.sh failed. Please check for issues.\e[0m"
+        echo "Error in start.sh: $(tail -n 5 /notebooks/private/install_log.txt)" >> "$ERROR_LOG"
         exit 1
-    }
-    echo "Successfully ran start.sh."
+    else
+        echo -e "\e[32mstart.sh completed successfully.\e[0m"
+    fi
 else
-    echo "Skipping start.sh execution."
+    echo -e "\e[33mSkipping start.sh.\e[0m"
 fi
 
-# Final message to user
-echo "All scripts have been processed. Please review any error messages above for failed installations."
-
-EOF
+# Final message
+echo -e "\e[32mInstallation complete.\e[0m"
+if [ -s "$ERROR_LOG" ]; then
+    echo -e "\e[31mThe following errors occurred during installation:\e[0m"
+    cat "$ERROR_LOG"
+    echo -e "\e[31mPlease review the error log for more details.\e[0m"
+else
+    echo -e "\e[32mNo errors encountered during installation.\e[0m"
+fi
