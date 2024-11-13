@@ -15,16 +15,18 @@ trap 'error_exit $LINENO "$BASH_COMMAND"' ERR
 # Update system and install dependencies
 echo -e "\033[34mWelcome to your Interact Joy Stable Diffusion Workplace. Use the Public Gradio Link at the end of the process to access your Stable Diffusion Workplace in your browser.\033[0m"
 echo -e "\033[34mThe installation process will take about 5 minutes.\033[0m"
-echo "Installing system dependencies..."
-sudo apt update
-sudo apt install -y wget git python3 python3-venv libgl1 libglib2.0-0
+
+# Install system dependencies
+echo "Installing required system dependencies..."
+sudo apt-get update -qq -o=Dpkg::Use-Pty=0 >/dev/null 2>&1
+sudo apt-get install -y -qq wget git python3 python3-venv libgl1 libglib2.0-0 -o=Dpkg::Use-Pty=0 >/dev/null 2>&1
 
 # Check if Python 3.11 is required (only if system doesn't have it)
 if ! command -v python3.11 &> /dev/null; then
-    echo "Installing Python 3.11 from deadsnakes PPA..."
-    sudo add-apt-repository -y ppa:deadsnakes/ppa
-    sudo apt update
-    sudo apt install -y python3.11
+    echo "Installing Python 3.11..."
+    sudo add-apt-repository -y ppa:deadsnakes/ppa >/dev/null 2>&1
+    sudo apt-get update -qq -o=Dpkg::Use-Pty=0 >/dev/null 2>&1
+    sudo apt-get install -y -qq python3.11 python3.11-venv -o=Dpkg::Use-Pty=0 >/dev/null 2>&1
     python_cmd="python3.11"
 else
     echo "Python 3.11 is already installed. Using system default."
@@ -33,12 +35,18 @@ fi
 
 # Create 'creativeteam' user and add to sudo group
 echo "Setting up 'creativeteam' user..."
-sudo adduser --disabled-password --gecos "" creativeteam || echo "User 'creativeteam' already exists."
+sudo adduser --disabled-password --gecos "" creativeteam >/dev/null || echo "User 'creativeteam' already exists."
 sudo usermod -aG sudo creativeteam
 
-# Clone the 'interactjoy/private' repository (if not already cloned)
-echo "Cloning the repository..."
-git clone https://github.com/interactjoy/private.git /notebooks/private || echo "Repository already cloned."
+# Clone or update the 'interactjoy/private' repository
+echo "Cloning or updating the repository..."
+if [ -d "/notebooks/private/.git" ]; then
+    echo "Repository already exists. Updating..."
+    cd /notebooks/private
+    sudo -u creativeteam git pull -q
+else
+    sudo -u creativeteam git clone -q https://github.com/interactjoy/private.git /notebooks/private
+fi
 
 # Ensure proper ownership of the repository and all files
 sudo chown -R creativeteam:creativeteam /notebooks/private
@@ -47,31 +55,19 @@ sudo chown -R creativeteam:creativeteam /notebooks/private
 cd /notebooks/private
 
 # Mark the repository as a safe directory for Git to avoid dubious ownership error
-su - creativeteam -c "git config --global --add safe.directory /notebooks/private"
+sudo -u creativeteam git config --global --add safe.directory /notebooks/private
 
 # Ensure the venv directory doesn't exist and recreate it
+echo "Setting up Python virtual environment..."
 rm -rf /notebooks/private/venv
-su - creativeteam -c "$python_cmd -m venv /notebooks/private/venv"
+sudo -u creativeteam "$python_cmd" -m venv /notebooks/private/venv
 
 # Install required Python dependencies
 echo "Installing Python dependencies..."
-su - creativeteam -c "/notebooks/private/venv/bin/python -m pip install -r /notebooks/private/requirements.txt"
+sudo -u creativeteam /notebooks/private/venv/bin/python -m pip install -q -r /notebooks/private/requirements.txt
 
 # Add permission and run the extensions.sh file
+echo "Running extensions setup..."
 chmod +x /notebooks/private/extensions.sh
-su - creativeteam -c "cd /notebooks/private && bash extensions.sh"
-
-# Run the program (webui.sh) as 'creativeteam' user
-echo "Running the program (webui.sh) as 'creativeteam' user..."
-su - creativeteam -c "cd /notebooks/private && bash webui.sh"
-
-# Display the Gradio public link clearly
-if grep -q 'http.*gradio.*' /notebooks/private/webui_output.log; then
-    echo -e "\033[1;34m\n************************************************************\033[0m"
-    echo -e "\033[1;34m* \033[1;97mYour Stable Diffusion Workplace is ready!\033[0m"
-    echo -e "\033[1;34m* \033[1;97mUse the Public Gradio Link below to access it:\033[0m"
-    echo -e "\033[1;34m* \033[1;97m$(grep -o 'http.*gradio.*' /notebooks/private/webui_output.log)\033[0m"
-    echo -e "\033[1;34m************************************************************\033[0m"
-else
-    echo -e "\033[1;31mError: Could not find the Gradio public link in the output log.\033[0m"
-fi
+chmod +x /notebooks/private/start.sh
+sudo -u creativeteam bash /notebooks/private/extensions.sh
