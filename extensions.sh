@@ -68,9 +68,9 @@ run_script_as_creativeteam() {
     fi
 
     echo -e "\e[34mRunning $(basename "$script_path")...\e[0m"
-    if ! sudo -u creativeteam bash -c "cd $(dirname "$script_path") && ./$(basename "$script_path")" >> /notebooks/private/install_log.txt 2>&1; then
+    if ! sudo -u creativeteam bash -c "cd $(dirname "$script_path") && ./$(basename "$script_path")"; then
         echo -e "\e[31mError: $(basename "$script_path") failed. Please check for issues.\e[0m"
-        echo "Error in $(basename "$script_path"): $(tail -n 5 /notebooks/private/install_log.txt)" >> "$ERROR_LOG"
+        echo "Error in $(basename "$script_path"): $(tail -n 5 /notebooks/private/error_log.txt)" >> "$ERROR_LOG"
     else
         echo -e "\e[32mCompleted $(basename "$script_path").\e[0m"
     fi
@@ -111,7 +111,7 @@ done
 
 # Upgrade gdown
 echo -e "\e[34mUpgrading gdown...\e[0m"
-if /notebooks/private/venv/bin/pip install --upgrade gdown >> /notebooks/private/install_log.txt 2>&1; then
+if /notebooks/private/venv/bin/pip install --upgrade gdown; then
     echo -e "\e[32mgdown upgraded successfully.\e[0m"
 else
     echo -e "\e[31mError: Failed to upgrade gdown. Please check your setup.\e[0m"
@@ -130,9 +130,9 @@ fi
 read -p "Do you want to run start.sh now? (Y/N): " run_start
 if [[ "$run_start" =~ ^[Yy]$ ]]; then
     echo -e "\e[34mRunning start.sh...\e[0m"
-    if ! sudo -u creativeteam bash -c "cd /notebooks/private && ./start.sh" >> /notebooks/private/install_log.txt 2>&1; then
+    if ! sudo -u creativeteam bash -c "cd /notebooks/private && ./start.sh"; then
         echo -e "\e[31mError: start.sh failed. Please check for issues.\e[0m"
-        echo "Error in start.sh: $(tail -n 5 /notebooks/private/install_log.txt)" >> "$ERROR_LOG"
+        echo "Error in start.sh" >> "$ERROR_LOG"
         exit 1
     else
         echo -e "\e[32mstart.sh completed successfully.\e[0m"
