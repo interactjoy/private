@@ -109,13 +109,13 @@ for script_name in "${SCRIPTS[@]}"; do
 
 done
 
-# Upgrade gdown
-echo -e "\e[34mUpgrading gdown...\e[0m"
-if /notebooks/private/venv/bin/pip install --upgrade gdown; then
-    echo -e "\e[32mgdown upgraded successfully.\e[0m"
+# Upgrade gdown and pip
+echo -e "\e[34mUpgrading gdown and pip...\e[0m"
+if /notebooks/private/venv/bin/pip install --upgrade pip gdown; then
+    echo -e "\e[32mgdown and pip upgraded successfully.\e[0m"
 else
-    echo -e "\e[31mError: Failed to upgrade gdown. Please check your setup.\e[0m"
-    echo "Error in upgrading gdown" >> "$ERROR_LOG"
+    echo -e "\e[31mError: Failed to upgrade gdown and/or pip. Please check your setup.\e[0m"
+    echo "Error in upgrading gdown and/or pip" >> "$ERROR_LOG"
 fi
 
 # Set permissions for start.sh
