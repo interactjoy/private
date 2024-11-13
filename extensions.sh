@@ -23,9 +23,6 @@ prompt_for_token() {
 # Prompt the user for the GitHub token
 prompt_for_token
 
-# Ensure we're working with creativeteam permissions
-sudo -u creativeteam bash << EOF
-
 # Clone the repository using the token
 REPO_URL="https://github.com/interactjoy/Scripts"
 
@@ -42,27 +39,14 @@ else
     echo "Repository cloned successfully."
 fi
 
-# Function to show progress bar
-show_progress_bar() {
-    local duration=$1
-    local interval=1
-    local progress=0
-
-    echo -n "["
-    while [ $progress -lt $duration ]; do
-        echo -n "#"
-        sleep $interval
-        progress=$((progress + interval))
-    done
-    echo "]"
-}
+# Ensure we're working with creativeteam permissions
+sudo -u creativeteam bash << EOF
 
 # Function to run a script and handle errors
 run_script() {
     if [ -f "$1" ]; then
         echo "Running $(basename "$1")..."
         chmod +x "$1"
-        show_progress_bar 10
         "$1" || {
             echo "Error: Failed to run $1. Please check the script for issues."
             return 1
@@ -85,11 +69,7 @@ SCRIPTS=(
 )
 
 for script in "${SCRIPTS[@]}"; do
-    if [ -f "$script" ]; then
-        echo "Skipping $(basename "$script") as it already exists."
-    else
-        run_script "$script"
-    fi
+    run_script "$script"
     if [ ! -f "$script" ]; then
         echo "Error: $script was not downloaded correctly or is missing."
         exit 1
@@ -99,7 +79,6 @@ done
 
 # Upgrade gdown using virtual environment and handle errors
 echo "Upgrading gdown..."
-show_progress_bar 10
 if /notebooks/private/venv/bin/pip install --upgrade gdown; then
     echo "Successfully upgraded gdown."
 else
