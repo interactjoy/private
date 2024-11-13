@@ -1,5 +1,3 @@
-pip install insightface
-
 #!/bin/bash
 
 echo "Starting Stable Diffusion Workspace..."
