@@ -46,6 +46,10 @@ echo -e "\033[34mSetting up 'creativeteam' user...\033[0m"
 sudo adduser --disabled-password --gecos "" creativeteam >/dev/null || echo "User 'creativeteam' already exists."
 sudo usermod -aG sudo creativeteam
 
+# Grant 'creativeteam' user permissions to necessary directories
+echo -e "\033[34mGranting 'creativeteam' user permissions...\033[0m"
+sudo chmod -R 775 /notebooks/private
+
 # Ensure proper ownership of the repository directory
 if [ -d "/notebooks/private" ]; then
     echo -e "\033[34mEnsuring correct ownership of the repository directory...\033[0m"
@@ -61,12 +65,12 @@ echo -e "\033[34mCloning or updating the repository...\033[0m"
 if [ -d "/notebooks/private/.git" ]; then
     echo -e "\033[34mRepository already exists. Updating...\033[0m"
     cd /notebooks/private
-    sudo -u creativeteam git fetch --all >/dev/null 2>&1 || { echo -e "\033[31mFailed to fetch updates. Please check your network connection.\033[0m"; exit 1; }
-    sudo -u creativeteam git reset --hard origin/master -- >/dev/null 2>&1 || { echo -e "\033[31mFailed to reset repository. Retrying with safe permissions...\033[0m"; sudo git config --global --add safe.directory /notebooks/private && sudo git reset --hard origin/master --; }
+    sudo -u creativeteam git fetch --all || { echo -e "\033[31mFailed to fetch updates. Please check your network connection.\033[0m"; exit 1; }
+    sudo -u creativeteam git reset --hard origin/master -- || { echo -e "\033[31mFailed to reset repository. Retrying with safe permissions...\033[0m"; sudo git config --global --add safe.directory /notebooks/private && sudo git reset --hard origin/master --; }
     echo -e "\033[32mRepository update complete.\033[0m"
 else
     echo -e "\033[34mCloning the repository...\033[0m"
-    sudo -u creativeteam git clone -q https://github.com/interactjoy/private.git /notebooks/private
+    sudo -u creativeteam git clone https://github.com/interactjoy/private.git /notebooks/private
     echo -e "\033[32mRepository clone complete.\033[0m"
 fi
 
@@ -87,21 +91,27 @@ rm -rf /notebooks/private/venv
 sudo -u creativeteam "$python_cmd" -m venv /notebooks/private/venv
 echo -e "\033[32mPython virtual environment setup complete.\033[0m"
 
-# Install required Python dependencies
+# Install required Python dependencies with progress bar (without suppressing output)
 echo -e "\033[34mInstalling Python dependencies...\033[0m"
 DEPENDENCY_COUNT=$(wc -l < /notebooks/private/requirements.txt)
 CURRENT_COUNT=0
 while read -r dependency; do
-    CURRENT_COUNT=$((CURRENT_COUNT + 1))
-    echo -ne "\rInstalling $dependency ($CURRENT_COUNT/$DEPENDENCY_COUNT)..."
-    sudo -u creativeteam /notebooks/private/venv/bin/python -m pip install -q "$dependency" >/dev/null 2>&1
-    echo -ne "\033[32m Done.\033[0m\n"
+    if [[ -n "$dependency" ]]; then
+        CURRENT_COUNT=$((CURRENT_COUNT + 1))
+        PERCENT=$((CURRENT_COUNT * 100 / DEPENDENCY_COUNT))
+        echo -ne "\rInstalling $dependency ($CURRENT_COUNT/$DEPENDENCY_COUNT) [$PERCENT%]..."
+        sudo -H -u creativeteam /notebooks/private/venv/bin/python -m pip install "$dependency" || {
+            echo -e "\033[31m Failed to install $dependency. Please check the package name or your network connection.\033[0m";
+            exit 1;
+        }
+        echo -ne "\033[32m Done.\033[0m\n"
+    fi
 done < /notebooks/private/requirements.txt
 echo -e "\033[32mAll Python dependencies installation complete.\033[0m"
 
 # Add permission and run the extensions.sh file
 echo -e "\033[34mRunning extensions setup...\033[0m"
 chmod +x /notebooks/private/extensions.sh
-sudo -u creativeteam bash /notebooks/private/extensions.sh >/dev/null 2>&1
+sudo -u creativeteam bash /notebooks/private/extensions.sh
 
 echo -e "\033[32mSetup completed successfully!\033[0m"
