@@ -96,4 +96,27 @@ sudo -u creativeteam "$python_cmd" -m venv /notebooks/private/venv
 echo -e "\033[32mPython virtual environment setup complete.\033[0m"
 
 # Install required Python dependencies with progress bar (ignoring empty lines)
-echo -e "\033[34mInstalling Python dependencies...
+echo -e "\033[34mInstalling Python dependencies...\033[0m"
+DEPENDENCY_COUNT=$(grep -cve '^\s*$' /notebooks/private/requirements.txt)
+CURRENT_COUNT=0
+while read -r dependency; do
+    if [[ -n "$dependency" && ! "$dependency" =~ ^\s*$ ]]; then
+        dependency=$(echo "$dependency" | xargs)  # Remove leading/trailing whitespaces
+        CURRENT_COUNT=$((CURRENT_COUNT + 1))
+        PERCENT=$((CURRENT_COUNT * 100 / DEPENDENCY_COUNT))
+        echo -ne "\rInstalling $dependency ($CURRENT_COUNT/$DEPENDENCY_COUNT) [$PERCENT%]..."
+        sudo -H -u creativeteam /notebooks/private/venv/bin/python -m pip install "$dependency" || {
+            echo -e "\033[31m Failed to install $dependency. Please check the package name or your network connection.\033[0m"
+            exit 1
+        }
+        echo -ne "\033[32m Done.\033[0m\n"
+    fi
+done < /notebooks/private/requirements.txt
+echo -e "\033[32mAll Python dependencies installation complete.\033[0m"
+
+# Add permission and run the extensions.sh file
+echo -e "\033[34mRunning extensions setup...\033[0m"
+chmod +x /notebooks/private/extensions.sh
+sudo -u creativeteam bash /notebooks/private/extensions.sh
+
+echo -e "\033[32mSetup completed successfully!\033[0m"
