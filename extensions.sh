@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Switch to 'creativeteam' user at the beginning
+if [ "$EUID" -ne $(id -u creativeteam) ]; then
+    exec sudo -u creativeteam -H bash "$0" "$@"
+fi
+
 # Ensure the 'creativeteam' user exists, create if missing
 if ! id "creativeteam" &>/dev/null; then
     echo "Setting up environment..."
@@ -54,40 +59,12 @@ fi
 ERROR_LOG="/notebooks/private/error_log.txt"
 > "$ERROR_LOG"
 
-# Upgrade gdown and pip
-echo -e "\e[34mUpgrading gdown and pip...\e[0m"
-if /notebooks/private/venv/bin/pip install --upgrade pip gdown; then
-    echo -e "\e[32mgdown and pip upgraded successfully.\e[0m"
-else
-    echo -e "\e[31mError: Failed to upgrade gdown and/or pip. Please check your setup.\e[0m"
-    echo "Error in upgrading gdown and/or pip" >> "$ERROR_LOG"
-fi
-
-# Fix gdown CLI issue by reinstalling gdown globally
-echo -e "\e[34mReinstalling gdown globally to fix CLI issue...\e[0m"
-if sudo /notebooks/private/venv/bin/pip install --force-reinstall gdown; then
-    echo -e "\e[32mgdown reinstalled successfully.\e[0m"
-else
-    echo -e "\e[31mError: Failed to reinstall gdown. Please check your setup.\e[0m"
-    echo "Error in reinstalling gdown" >> "$ERROR_LOG"
-fi
-
-# Clear pip cache to prevent dependency conflicts
-echo -e "\e[34mClearing pip cache to prevent dependency conflicts...\e[0m"
-if /notebooks/private/venv/bin/pip cache purge; then
-    echo -e "\e[32mPip cache cleared successfully.\e[0m"
-else
-    echo -e "\e[31mError: Failed to clear pip cache. Please check your setup.\e[0m"
-    echo "Error in clearing pip cache" >> "$ERROR_LOG"
-fi
-
-# Function to run scripts as 'creativeteam' user
-run_script_as_creativeteam() {
+# Function to run scripts
+run_script() {
     script_path="$1"
 
     if [ -f "$script_path" ]; then
-        sudo chown creativeteam:creativeteam "$script_path"
-        sudo chmod u+x "$script_path"
+        chmod u+x "$script_path"
     else
         echo -e "\e[33mWarning: $script_path not found. Skipping...\e[0m"
         echo "Error: $script_path not found" >> "$ERROR_LOG"
@@ -95,7 +72,7 @@ run_script_as_creativeteam() {
     fi
 
     echo -e "\e[34mRunning $(basename "$script_path")...\e[0m"
-    if ! sudo -u creativeteam bash -c "cd $(dirname "$script_path") && ./$(basename "$script_path")"; then
+    if ! bash -c "source /notebooks/private/venv/bin/activate && cd $(dirname "$script_path") && ./$(basename "$script_path")"; then
         echo -e "\e[31mError: $(basename "$script_path") failed. Please check for issues.\e[0m"
         echo "Error in $(basename "$script_path"): $(tail -n 5 /notebooks/private/error_log.txt)" >> "$ERROR_LOG"
     else
@@ -117,7 +94,7 @@ SCRIPTS=(
 for script_name in "${SCRIPTS[@]}"; do
     script_path="${INSTALL_DIR}/${script_name}"
     echo -e "\e[34m[===== Running: $(basename "$script_path") =====]\e[0m"
-    run_script_as_creativeteam "$script_path"
+    run_script "$script_path"
     echo -e "\e[34m[===== Completed: $(basename "$script_path") =====]\e[0m"
     sleep 1
 
@@ -148,7 +125,7 @@ fi
 read -p "Do you want to run start.sh now? (Y/N): " run_start
 if [[ "$run_start" =~ ^[Yy]$ ]]; then
     echo -e "\e[34mRunning start.sh...\e[0m"
-    if ! sudo -u creativeteam bash -c "cd /notebooks/private && ./start.sh"; then
+    if ! bash -c "source /notebooks/private/venv/bin/activate && cd /notebooks/private && ./start.sh"; then
         echo -e "\e[31mError: start.sh failed. Please check for issues.\e[0m"
         echo "Error in start.sh" >> "$ERROR_LOG"
         exit 1
