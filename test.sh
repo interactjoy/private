@@ -48,6 +48,10 @@ sudo usermod -aG sudo creativeteam
 if [ -d "/notebooks/private" ]; then
     echo "Ensuring correct ownership of the repository directory..."
     sudo chown -R creativeteam:creativeteam /notebooks/private
+else
+    echo "Creating repository directory..."
+    sudo mkdir -p /notebooks/private
+    sudo chown -R creativeteam:creativeteam /notebooks/private
 fi
 
 # Clone or update the 'interactjoy/private' repository
