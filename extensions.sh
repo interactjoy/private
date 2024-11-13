@@ -109,6 +109,19 @@ fi
 # Add permission for start.sh script
 chmod +x /notebooks/private/start.sh
 
+# Prompt the user if they want to run start.sh
+read -p "Do you want to run start.sh now? (Y/N): " run_start
+if [[ "$run_start" =~ ^[Yy]$ ]]; then
+    echo "Running start.sh..."
+    /notebooks/private/start.sh || {
+        echo "Error: Failed to run start.sh. Please check the script for issues."
+        exit 1
+    }
+    echo "Successfully ran start.sh."
+else
+    echo "Skipping start.sh execution."
+fi
+
 # Final message to user
 echo "All scripts have been processed. Please review any error messages above for failed installations."
 
