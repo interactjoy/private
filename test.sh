@@ -59,7 +59,8 @@ echo "Cloning or updating the repository..."
 if [ -d "/notebooks/private/.git" ]; then
     echo "Repository already exists. Updating..."
     cd /notebooks/private
-    sudo -u creativeteam git pull origin main >/dev/null 2>&1
+    sudo -u creativeteam git fetch --all >/dev/null 2>&1
+    sudo -u creativeteam git reset --hard origin/main >/dev/null 2>&1
 else
     echo "Cloning the repository..."
     sudo -u creativeteam git clone -q https://github.com/interactjoy/private.git /notebooks/private
