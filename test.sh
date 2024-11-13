@@ -69,5 +69,4 @@ sudo -u creativeteam /notebooks/private/venv/bin/python -m pip install -q -r /no
 # Add permission and run the extensions.sh file
 echo "Running extensions setup..."
 chmod +x /notebooks/private/extensions.sh
-chmod +x /notebooks/private/start.sh
 sudo -u creativeteam bash /notebooks/private/extensions.sh
