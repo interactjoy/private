@@ -54,6 +54,33 @@ fi
 ERROR_LOG="/notebooks/private/error_log.txt"
 > "$ERROR_LOG"
 
+# Upgrade gdown and pip
+echo -e "\e[34mUpgrading gdown and pip...\e[0m"
+if /notebooks/private/venv/bin/pip install --upgrade pip gdown; then
+    echo -e "\e[32mgdown and pip upgraded successfully.\e[0m"
+else
+    echo -e "\e[31mError: Failed to upgrade gdown and/or pip. Please check your setup.\e[0m"
+    echo "Error in upgrading gdown and/or pip" >> "$ERROR_LOG"
+fi
+
+# Fix gdown CLI issue by reinstalling gdown globally
+echo -e "\e[34mReinstalling gdown globally to fix CLI issue...\e[0m"
+if sudo /notebooks/private/venv/bin/pip install --force-reinstall gdown; then
+    echo -e "\e[32mgdown reinstalled successfully.\e[0m"
+else
+    echo -e "\e[31mError: Failed to reinstall gdown. Please check your setup.\e[0m"
+    echo "Error in reinstalling gdown" >> "$ERROR_LOG"
+fi
+
+# Clear pip cache to prevent dependency conflicts
+echo -e "\e[34mClearing pip cache to prevent dependency conflicts...\e[0m"
+if /notebooks/private/venv/bin/pip cache purge; then
+    echo -e "\e[32mPip cache cleared successfully.\e[0m"
+else
+    echo -e "\e[31mError: Failed to clear pip cache. Please check your setup.\e[0m"
+    echo "Error in clearing pip cache" >> "$ERROR_LOG"
+fi
+
 # Function to run scripts as 'creativeteam' user
 run_script_as_creativeteam() {
     script_path="$1"
@@ -108,24 +135,6 @@ for script_name in "${SCRIPTS[@]}"; do
     esac
 
 done
-
-# Upgrade gdown and pip
-echo -e "\e[34mUpgrading gdown and pip...\e[0m"
-if /notebooks/private/venv/bin/pip install --upgrade pip gdown; then
-    echo -e "\e[32mgdown and pip upgraded successfully.\e[0m"
-else
-    echo -e "\e[31mError: Failed to upgrade gdown and/or pip. Please check your setup.\e[0m"
-    echo "Error in upgrading gdown and/or pip" >> "$ERROR_LOG"
-fi
-
-# Fix gdown CLI issue by reinstalling gdown globally
-echo -e "\e[34mReinstalling gdown globally to fix CLI issue...\e[0m"
-if sudo /notebooks/private/venv/bin/pip install --force-reinstall gdown; then
-    echo -e "\e[32mgdown reinstalled successfully.\e[0m"
-else
-    echo -e "\e[31mError: Failed to reinstall gdown. Please check your setup.\e[0m"
-    echo "Error in reinstalling gdown" >> "$ERROR_LOG"
-fi
 
 # Set permissions for start.sh
 if [ -f "/notebooks/private/start.sh" ]; then
