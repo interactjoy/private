@@ -118,6 +118,15 @@ else
     echo "Error in upgrading gdown and/or pip" >> "$ERROR_LOG"
 fi
 
+# Fix gdown CLI issue by reinstalling gdown globally
+echo -e "\e[34mReinstalling gdown globally to fix CLI issue...\e[0m"
+if sudo /notebooks/private/venv/bin/pip install --force-reinstall gdown; then
+    echo -e "\e[32mgdown reinstalled successfully.\e[0m"
+else
+    echo -e "\e[31mError: Failed to reinstall gdown. Please check your setup.\e[0m"
+    echo "Error in reinstalling gdown" >> "$ERROR_LOG"
+fi
+
 # Set permissions for start.sh
 if [ -f "/notebooks/private/start.sh" ]; then
     chmod +x /notebooks/private/start.sh
