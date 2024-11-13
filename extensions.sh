@@ -1,7 +1,27 @@
 #!/bin/bash
 
-# GitHub token (replace with your generated token)
-GITHUB_TOKEN=" x "
+# Function to prompt the user to enter the GitHub token until valid or quit
+prompt_for_token() {
+    while true; do
+        read -p "Please enter your GITHUB_TOKEN (or type 'q' to quit): " GITHUB_TOKEN
+        if [ "$GITHUB_TOKEN" == "q" ]; then
+            echo "Quitting..."
+            exit 0
+        fi
+
+        # Test the token by attempting to access the repository
+        echo "Testing GITHUB_TOKEN..."
+        if git ls-remote https://"$GITHUB_TOKEN"@github.com/interactjoy/Scripts &>/dev/null; then
+            echo "Token is valid."
+            break
+        else
+            echo "Error: Invalid token. Please try again."
+        fi
+    done
+}
+
+# Prompt the user for the GitHub token
+prompt_for_token
 
 # Ensure we're working with creativeteam permissions
 sudo -u creativeteam bash << EOF
@@ -24,32 +44,32 @@ fi
 
 # Function to show progress bar
 show_progress_bar() {
-    local duration=\$1
+    local duration=$1
     local interval=1
     local progress=0
 
     echo -n "["
-    while [ \$progress -lt \$duration ]; do
+    while [ $progress -lt $duration ]; do
         echo -n "#"
-        sleep \$interval
-        progress=\$((progress + interval))
+        sleep $interval
+        progress=$((progress + interval))
     done
     echo "]"
 }
 
 # Function to run a script and handle errors
 run_script() {
-    if [ -f "\$1" ]; then
-        echo "Running \$(basename "\$1")..."
-        chmod +x "\$1"
+    if [ -f "$1" ]; then
+        echo "Running $(basename "$1")..."
+        chmod +x "$1"
         show_progress_bar 10
-        "\$1" || {
-            echo "Error: Failed to run \$1. Please check the script for issues."
+        "$1" || {
+            echo "Error: Failed to run $1. Please check the script for issues."
             return 1
         }
-        echo "Successfully ran \$(basename "\$1")."
+        echo "Successfully ran $(basename "$1")."
     else
-        echo "Error: Script \$1 not found."
+        echo "Error: Script $1 not found."
     fi
 }
 
@@ -64,17 +84,17 @@ SCRIPTS=(
     "/notebooks/private/Install/install_lora_models.sh"
 )
 
-for script in "\${SCRIPTS[@]}"; do
-    if [ -f "\$script" ]; then
-        echo "Skipping \$(basename "\$script") as it already exists."
+for script in "${SCRIPTS[@]}"; do
+    if [ -f "$script" ]; then
+        echo "Skipping $(basename "$script") as it already exists."
     else
-        run_script "\$script"
+        run_script "$script"
     fi
-    if [ ! -f "\$script" ]; then
-        echo "Error: \$script was not downloaded correctly or is missing."
+    if [ ! -f "$script" ]; then
+        echo "Error: $script was not downloaded correctly or is missing."
         exit 1
     fi
-    echo "\$(basename "\$script") is available."
+    echo "$(basename "$script") is available."
 done
 
 # Upgrade gdown using virtual environment and handle errors
