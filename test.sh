@@ -57,6 +57,31 @@ su - creativeteam -c "python3 -m venv /notebooks/private/venv"
 echo "Installing Python dependencies..."
 su - creativeteam -c "/notebooks/private/venv/bin/python -m pip install -r /notebooks/private/requirements.txt"
 
-# Run the program (webui.sh) as 'creativeteam' user
-echo "Running the program (webui.sh) as 'creativeteam' user..."
-su - creativeteam -c "cd /notebooks/private && bash webui.sh"
+#Prompt User
+# Set permissions for extensions.sh
+if [ -f "/notebooks/private/extensions.sh" ]; then
+    chmod +x /notebooks/private/extensions.sh
+else
+    echo -e "\e[31mError: extensions.sh not found.\e[0m"
+    echo "Error: extensions.sh not found" >> "$ERROR_LOG"
+fi
+
+# Swap to 'creativeteam' user
+echo "Swapping to creativeteam' user..."
+su - creativeteam -c "cd /notebooks/private
+
+# Prompt user to run extensions.sh
+read -p "Do you want to run extensions.sh now? (Y/N): " run_extensions
+if [[ "$run_extensions" =~ ^[Yy]$ ]]; then
+    echo -e "\e[34mRunning extensions.sh...\e[0m"
+    if ! bash -c "source /notebooks/private/venv/bin/activate && cd /notebooks/private && ./extensions.sh"; then
+        echo -e "\e[31mError: extensions.sh failed. Please check for issues.\e[0m"
+        echo "Error in extensions.sh" >> "$ERROR_LOG"
+        exit 1
+    else
+        echo -e "\e[32mextensions.sh completed successfully.\e[0m"
+    fi
+else
+    echo -e "\e[33mSkipping extensions.sh.\e[0m"
+fi
+
