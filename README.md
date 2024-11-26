@@ -8,3 +8,10 @@ chmod +x install.sh
 
 /notebooks/private/install.sh
 
+# START SD Linux Cloud GPU
+
+cd /notebooks/private
+
+chmod +x start.sh
+
+/notebooks/private/start.sh
