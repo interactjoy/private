@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Function to start the heartbeat in the background
+start_heartbeat() {
+    echo "Starting heartbeat..."
+    while true; do
+        echo "$(date '+%Y-%m-%d %H:%M:%S') Heartbeat: Server is running..."
+        sleep 60 # Adjust the interval as needed
+    done
+}
+
+# Start the heartbeat process in the background
+start_heartbeat &
+
+# Capture the PID of the heartbeat process
+HEARTBEAT_PID=$!
+
 # Create 'creativeteam' user and add to sudo group
 echo "Setting up 'creativeteam' user..."
 sudo adduser --disabled-password --gecos "" creativeteam || echo "User 'creativeteam' already exists."
@@ -39,3 +54,7 @@ echo -e '\n'
 echo -e '\033[1;34m
 Startup complete. Please check the logs for the Gradio public link.\033[0m'
 "
+
+# Stop the heartbeat process when the main script finishes
+echo "Stopping heartbeat..."
+kill $HEARTBEAT_PID
