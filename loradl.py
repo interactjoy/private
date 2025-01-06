@@ -110,13 +110,13 @@ def download_file(url):
         # Construct the direct download URL
         direct_url = f"https://drive.google.com/uc?export=download&id={file_id}"
         try:
-            # Use wget to download the file
+            # Use wget to download the file with the original name
             command = [
                 "wget",
                 "-q",  # Quiet mode
                 "--show-progress",  # Show download progress
-                "-O",
-                os.path.join(DESTINATION, file_id),  # Save with the file ID as the name
+                "--content-disposition",  # Use the original file name
+                "-P", DESTINATION,  # Save to the destination directory
                 direct_url,
             ]
             subprocess.run(command, check=True)
