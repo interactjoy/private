@@ -15,3 +15,7 @@ cd /notebooks/private
 chmod +x start.sh
 
 /notebooks/private/start.sh
+
+# Add LORAs
+cd /notebooks/private
+python loradl.py
