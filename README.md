@@ -18,4 +18,5 @@ chmod +x start.sh
 
 # DOWNLOAD LORAs
 cd /notebooks/private
+
 python loradl.py
